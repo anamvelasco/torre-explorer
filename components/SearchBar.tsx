@@ -8,22 +8,20 @@ export default function SearchBar() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const username = value.trim();
+    const username = value.trim().replace(/^@+/, "");
     if (!username) return;
     router.push(`/profile/${encodeURIComponent(username)}`);
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex gap-2">
+    <form onSubmit={onSubmit} className="row">
       <input
-        className="w-full rounded-xl border border-neutral-300 px-4 py-3 outline-none focus:ring-2 focus:ring-neutral-300"
+        className="input"
         placeholder="Escribe un username de Torre (ej: rubenjr)"
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
-      <button type="submit" className="rounded-xl px-5 py-3 bg-black text-white">
-        Buscar
-      </button>
+      <button type="submit" className="btn">Buscar</button>
     </form>
   );
 }

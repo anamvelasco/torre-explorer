@@ -1,28 +1,28 @@
 import SearchBar from "@/components/SearchBar";
-import { Card, CardPad } from "@/components/UI";
 
 export default function HomePage() {
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardPad>
-          <h2 className="text-lg font-semibold mb-2">Buscar perfil por username</h2>
-          <p className="text-sm opacity-70 mb-4">Ejemplo: rubenjr</p>
+    <div className="section">
+      <div className="card">
+        <div className="card-pad">
+          <h2 className="title">Buscar perfil por username</h2>
+          <p className="subtitle">Ejemplo: <code>rubenjr</code></p>
           <SearchBar />
-        </CardPad>
-      </Card>
-      <Card>
-        <CardPad>
-          <h3 className="font-medium mb-2">Ejemplos rápidos</h3>
-          <div className="flex flex-wrap gap-2">
+        </div>
+      </div>
+
+      <div style={{ height: 16 }} />
+
+      <div className="card">
+        <div className="card-pad">
+          <h3 className="h2">Ejemplos rápidos</h3>
+          <div className="row">
             {["rubenjr", "guillermo", "veronica"].map((u) => (
-              <a key={u} href={`/profile/${u}`} className="px-3 py-1 rounded-full border text-sm">
-                {u}
-              </a>
+              <a key={u} href={`/profile/${u}`} className="chip">{u}</a>
             ))}
           </div>
-        </CardPad>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
