@@ -1,23 +1,17 @@
-import { NextResponse } from "next/server";
+// app/api/torre/genome/[username]/route.ts
+export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: { username: string } }) {
-  const { username } = params;
-  const url = `https://torre.ai/api/genome/bios/${encodeURIComponent(username)}`;
+  const url = `https://torre.ai/api/genome/bios/${encodeURIComponent(params.username)}`;
 
-  try {
-    const res = await fetch(url, { headers: { accept: "application/json" } });
-    const text = await res.text();
+  const upstream = await fetch(url, {
+    headers: { accept: "application/json" },
+    cache: "no-store",
+  });
 
-    // Intenta JSON; si no, forwardea tal cual (algunos perfiles devuelven text/html o similar)
-    try {
-      return NextResponse.json(JSON.parse(text), { status: res.status });
-    } catch {
-      return new NextResponse(text, {
-        status: res.status,
-        headers: { "content-type": res.headers.get("content-type") || "application/json" },
-      });
-    }
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Upstream error" }, { status: 500 });
-  }
+  const text = await upstream.text();
+  return new Response(text, {
+    status: upstream.status,
+    headers: { "content-type": upstream.headers.get("content-type") || "application/json" },
+  });
 }

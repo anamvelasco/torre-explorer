@@ -1,3 +1,4 @@
+import Link from "next/link";
 import SearchBar from "@/components/SearchBar";
 
 export default function HomePage() {
@@ -6,7 +7,9 @@ export default function HomePage() {
       <div className="card">
         <div className="card-pad">
           <h2 className="title">Buscar perfil por username</h2>
-          <p className="subtitle">Ejemplo: <code>rubenjr</code></p>
+          <p className="subtitle">
+            Ejemplo: <code>rubenjr</code>
+          </p>
           <SearchBar />
         </div>
       </div>
@@ -18,9 +21,21 @@ export default function HomePage() {
           <h3 className="h2">Ejemplos rápidos</h3>
           <div className="row">
             {["rubenjr", "guillermo", "veronica"].map((u) => (
-              <a key={u} href={`/profile/${u}`} className="chip">{u}</a>
+              <Link key={u} href={`/profile/${u}`} className="chip">
+                {u}
+              </Link>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div style={{ height: 16 }} />
+
+      <div className="card">
+        <div className="card-pad">
+          <Link className="btn" href="/search">
+            Buscar por nombre →
+          </Link>
         </div>
       </div>
     </div>
