@@ -48,7 +48,7 @@ export default function SearchByName() {
   return (
     <div className="card">
       <div className="card-pad">
-        <h2 className="title">Buscar por nombre</h2>
+        <h2 className="title">Search by name</h2>
         <form onSubmit={onSubmit}>
           <input
             className="input"
@@ -63,13 +63,13 @@ export default function SearchByName() {
         </form>
 
         <div style={{ height: 24 }} />
-        <h3 className="h2">Resultados</h3>
+        <h3 className="h2">Results</h3>
 
         {error && <div className="small" style={{ color: "#b91c1c" }}>{error}</div>}
-        {loading && <div className="small">Cargando…</div>}
-        {results === null && !loading && <div className="muted">Sin resultados aún.</div>}
+        {loading && <div className="small">Loading...</div>}
+        {results === null && !loading && <div className="muted">No results yet.</div>}
         {results && results.length === 0 && !loading && (
-          <div className="muted">No se encontraron coincidencias.</div>
+          <div className="muted">No matches found.</div>
         )}
 
         {results && results.length > 0 && (

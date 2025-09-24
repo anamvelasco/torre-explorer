@@ -1,4 +1,4 @@
-import Link from "next/link";
+// app/page.tsx
 import SearchBar from "@/components/SearchBar";
 
 export default function HomePage() {
@@ -6,10 +6,8 @@ export default function HomePage() {
     <div className="section">
       <div className="card">
         <div className="card-pad">
-          <h2 className="title">Buscar perfil por username</h2>
-          <p className="subtitle">
-            Ejemplo: <code>rubenjr</code>
-          </p>
+          <h2 className="title">Find a profile by username</h2>
+          <p className="subtitle">Try: <code>rubenjr</code></p>
           <SearchBar />
         </div>
       </div>
@@ -18,12 +16,10 @@ export default function HomePage() {
 
       <div className="card">
         <div className="card-pad">
-          <h3 className="h2">Ejemplos rápidos</h3>
+          <h3 className="h2">Quick examples</h3>
           <div className="row">
             {["rubenjr", "guillermo", "veronica"].map((u) => (
-              <Link key={u} href={`/profile/${u}`} className="chip">
-                {u}
-              </Link>
+              <a key={u} href={`/profile/${u}`} className="chip">{u}</a>
             ))}
           </div>
         </div>
@@ -31,13 +27,8 @@ export default function HomePage() {
 
       <div style={{ height: 16 }} />
 
-      <div className="card">
-        <div className="card-pad">
-          <Link className="btn" href="/search">
-            Buscar por nombre →
-          </Link>
-        </div>
-      </div>
+      {/* Make this link look like a green primary button */}
+      <a className="btn btn-primary" href="/search">Search by name →</a>
     </div>
   );
 }

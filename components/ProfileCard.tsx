@@ -1,137 +1,153 @@
-import StrengthsChart from "./StrengthsChart";
+// components/ProfileCard.tsx
+import StrengthsChart from "@/components/StrengthsChart";
 
-type Strength = { id?: string; name?: string; weight?: number };
-type Experience = {
-  name?: string; fromMonth?: number; fromYear?: number; toMonth?: number; toYear?: number;
-  organizations?: { name?: string }[];
-};
-type Education = {
-  name?: string; fromYear?: number; toYear?: number; organizations?: { name?: string }[];
-};
+type Bio = any;
 
-type Bio = {
-  person?: {
-    name?: string; professionalHeadline?: string; locationName?: string;
-    links?: { name?: string; address?: string }[]; username?: string;
-  };
-  strengths?: Strength[]; experiences?: Experience[]; education?: Education[];
-};
+function formatLocation(bio: Bio) {
+  const loc =
+    bio?.person?.location ||
+    bio?.person?.locationName ||
+    bio?.location ||
+    bio?.person?.links?.find?.((l: any) => l.name === "location")?.value;
+  return loc || null;
+}
+
+function topStrengths(bio: Bio, limit = 6) {
+  const arr: any[] = bio?.strengths || bio?.skills || [];
+  return arr
+    .slice()
+    .sort((a, b) => (b?.weight ?? 0) - (a?.weight ?? 0))
+    .slice(0, limit);
+}
+
+function jobs(bio: Bio) {
+  const arr: any[] = bio?.experiences || bio?.jobs || bio?.employment || [];
+  return arr.slice(0, 5);
+}
+
+function education(bio: Bio) {
+  const arr: any[] = bio?.education || bio?.studies || [];
+  return arr.slice(0, 4);
+}
 
 export default function ProfileCard({ bio }: { bio: Bio }) {
-  const person = bio.person || {};
-  const strengths = (bio.strengths || []).slice(0, 12);
+  const person = bio?.person || {};
+  const name = person?.name || bio?.name || "—";
+  const headline = person?.professionalHeadline || bio?.professionalHeadline || "—";
+  const location = formatLocation(bio);
+  const picture = person?.picture || person?.avatar || null;
 
-  const radar = strengths
-    .filter((s) => typeof s.weight === "number")
+  const strengths = topStrengths(bio, 6);
+  const radarData = (bio?.strengths || [])
     .slice(0, 6)
-    .map((s) => ({ name: s.name || "—", value: Math.max(1, Math.round(((s.weight || 1) as number) * 100)) }));
-
-  const experiences = (bio.experiences || []).slice(0, 6);
-  const education = (bio.education || []).slice(0, 4);
+    .map((s: any) => ({
+      name: s?.name ?? "",
+      value: Number(s?.weight ?? s?.proficiency ?? 0),
+    }));
 
   return (
     <div className="card">
       <div className="card-pad">
-        <h1 className="title" style={{ marginBottom: 6 }}>{person.name || "Unknown"}</h1>
-        {person.professionalHeadline && <p className="muted" style={{ marginTop: 0 }}>{person.professionalHeadline}</p>}
-
-        <div className="muted" style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 8 }}>
-          {person.locationName && <span>📍 {person.locationName}</span>}
-          {person.username && (
-            <a href={`https://torre.ai/${person.username}`} target="_blank" className="muted">View on Torre ↗</a>
+        {/* Header */}
+        <div className="row" style={{ gap: "1rem", alignItems: "center" }}>
+          {picture ? (
+            <img
+              src={picture}
+              alt={name}
+              className="avatar"
+              style={{ width: 64, height: 64, borderRadius: "50%" }}
+            />
+          ) : (
+            <div className="avatar" style={{ width: 64, height: 64, fontSize: 24 }}>
+              {(name || "?").slice(0, 1).toUpperCase()}
+            </div>
           )}
-          {(person.links || [])
-            .filter((l) => l?.address)
-            .slice(0, 3)
-            .map((l, i) => (
-              <a key={i} href={l!.address!} target="_blank" rel="noreferrer" className="muted">
-                {l!.name || "Link"} ↗
-              </a>
-            ))}
+          <div style={{ minWidth: 0 }}>
+            <div className="title" style={{ margin: 0 }}>{name}</div>
+            <div className="subtitle" style={{ marginTop: 2 }}>
+              {headline}{location ? ` · ${location}` : ""}
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="card-pad">
-        <div className="grid-2">
-          <section className="card" style={{ border: "none", boxShadow: "none" }}>
-            <div className="card-pad">
-              <h2 className="h2">Top strengths</h2>
-              {strengths.length === 0 ? (
-                <div className="muted">No strengths found.</div>
-              ) : (
-                <div className="row">
-                  {strengths.map((s, i) => <span key={i} className="chip">{s.name || "—"}</span>)}
-                </div>
-              )}
+        {/* Strengths chips */}
+        {strengths?.length ? (
+          <>
+            <div style={{ height: 16 }} />
+            <h3 className="h2" style={{ marginBottom: 8 }}>Top strengths</h3>
+            <div className="row" style={{ flexWrap: "wrap", gap: ".5rem" }}>
+              {strengths.map((s: any) => (
+                <span className="chip" key={s?.id || s?.name}>
+                  {s?.name ?? "—"}
+                </span>
+              ))}
             </div>
-          </section>
+          </>
+        ) : null}
 
-          <section className="card" style={{ border: "none", boxShadow: "none" }}>
-            <div className="card-pad">
-              <h2 className="h2">Strengths radar</h2>
-              {radar.length === 0 ? (
-                <div className="muted">Not enough data.</div>
-              ) : (
-                <div style={{ height: 280 }}>
-                  <StrengthsChart data={radar} />
-                </div>
-              )}
+        {/* Radar */}
+        {radarData?.length ? (
+          <>
+            <div style={{ height: 16 }} />
+            <h3 className="h2" style={{ marginBottom: 8 }}>Strengths radar</h3>
+            <div style={{ width: "100%", height: 300 }}>
+              <StrengthsChart data={radarData} />
             </div>
-          </section>
-        </div>
-      </div>
+          </>
+        ) : null}
 
-      <div className="card-pad">
-        <div className="grid-2">
-          <section className="card" style={{ border: "none", boxShadow: "none" }}>
-            <div className="card-pad">
-              <h2 className="h2">Experience</h2>
-              {experiences.length === 0 ? (
-                <div className="muted">No experience listed.</div>
-              ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                  {experiences.map((e, i) => (
-                    <li key={i} style={{ marginBottom: 10, lineHeight: 1.2 }}>
-                      <div style={{ fontWeight: 600 }}>{e.name || "—"}</div>
-                      <div className="muted">
-                        {e.organizations?.[0]?.name ? `${e.organizations?.[0]?.name} • ` : ""}
-                        {fmtRange(e.fromMonth, e.fromYear, e.toMonth, e.toYear)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
+        {/* Experience */}
+        {jobs(bio)?.length ? (
+          <>
+            <div style={{ height: 16 }} />
+            <h3 className="h2" style={{ marginBottom: 8 }}>Experience</h3>
+            <ul style={{ paddingLeft: 16, margin: 0 }}>
+              {jobs(bio).map((j: any, i: number) => (
+                <li key={i} style={{ marginBottom: 8 }}>
+                  <div className="result-name" style={{ fontWeight: 600 }}>
+                    {j?.name || j?.role || j?.position || "—"}
+                  </div>
+                  <div className="result-meta">
+                    {j?.organizations?.[0]?.name || j?.organization || j?.company || "—"}
+                    {j?.fromMonth || j?.toMonth || j?.fromYear || j?.toYear ? (
+                      <>
+                        {" · "}
+                        {[
+                          j?.fromMonth && j?.fromYear ? `${j.fromMonth}/${j.fromYear}` : null,
+                          j?.toMonth && j?.toYear ? `${j.toMonth}/${j.toYear}` : "Present",
+                        ]
+                          .filter(Boolean)
+                          .join(" – ")}
+                      </>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
 
-          <section className="card" style={{ border: "none", boxShadow: "none" }}>
-            <div className="card-pad">
-              <h2 className="h2">Education</h2>
-              {education.length === 0 ? (
-                <div className="muted">No education listed.</div>
-              ) : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                  {education.map((e, i) => (
-                    <li key={i} style={{ marginBottom: 10, lineHeight: 1.2 }}>
-                      <div style={{ fontWeight: 600 }}>{e.name || "—"}</div>
-                      <div className="muted">
-                        {e.organizations?.[0]?.name ? `${e.organizations?.[0]?.name} • ` : ""}
-                        {fmtRange(undefined, e.fromYear, undefined, e.toYear)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </section>
-        </div>
+        {/* Education */}
+        {education(bio)?.length ? (
+          <>
+            <div style={{ height: 16 }} />
+            <h3 className="h2" style={{ marginBottom: 8 }}>Education</h3>
+            <ul style={{ paddingLeft: 16, margin: 0 }}>
+              {education(bio).map((e: any, i: number) => (
+                <li key={i} style={{ marginBottom: 8 }}>
+                  <div className="result-name" style={{ fontWeight: 600 }}>
+                    {e?.name || e?.degree || "—"}
+                  </div>
+                  <div className="result-meta">
+                    {e?.organizations?.[0]?.name || e?.organization || e?.school || "—"}
+                    {e?.fromYear || e?.toYear ? ` · ${e?.fromYear ?? "—"} – ${e?.toYear ?? "Present"}` : ""}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </div>
     </div>
   );
-}
-
-function fmtRange(fromM?: number, fromY?: number, toM?: number, toY?: number) {
-  const from = [fromM, fromY].filter(Boolean).join("/");
-  const to = [toM, toY].filter(Boolean).join("/");
-  return `${from || "—"} – ${to || "present"}`;
 }

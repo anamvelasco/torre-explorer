@@ -1,4 +1,6 @@
+// components/StrengthsChart.tsx
 "use client";
+
 import {
   ResponsiveContainer,
   RadarChart,
@@ -6,20 +8,24 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
+  Tooltip,
 } from "recharts";
 
-export default function StrengthsChart({
-  data,
-}: {
-  data: { name: string; value: number }[];
-}) {
+type Item = { name: string; value: number };
+export default function StrengthsChart({ data }: { data: Item[] }) {
+  const safe = (data || []).map((d) => ({
+    name: d?.name ?? "",
+    value: Number(d?.value ?? 0),
+  }));
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <RadarChart data={data} outerRadius="70%">
+      <RadarChart data={safe}>
         <PolarGrid />
-        <PolarAngleAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <PolarRadiusAxis angle={30} domain={[0, 100]} />
-        <Radar dataKey="value" stroke="#000" fill="#000" fillOpacity={0.15} />
+        <PolarAngleAxis dataKey="name" />
+        <PolarRadiusAxis />
+        <Radar dataKey="value" fillOpacity={0.4} />
+        <Tooltip />
       </RadarChart>
     </ResponsiveContainer>
   );

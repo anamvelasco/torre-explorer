@@ -1,30 +1,6 @@
+// app/profile/[username]/page.tsx
 import ProfileCard from "@/components/ProfileCard";
 import { headers } from "next/headers";
-
-/** Construye una URL base absoluta (funciona local y en deploy) */
-function getBaseUrl(): string {
-  // 1) Si definiste una URL en variables de entorno, úsala
-  const env =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.APP_URL ||
-    process.env.VERCEL_URL; // en Vercel viene sin protocolo
-
-  if (env) {
-    const hasProto = env.startsWith("http://") || env.startsWith("https://");
-    return (hasProto ? env : `https://${env}`).replace(/\/$/, "");
-  }
-
-  // 2) Caso general: tomar host/proto del request
-  const h = headers(); // ¡OJO! NO se espera con await.
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (process.env.NODE_ENV === "production" ? "https" : "http");
-  const host =
-    h.get("x-forwarded-host") ??
-    h.get("host") ??
-    "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 export default async function ProfilePage({
   params,
@@ -32,53 +8,39 @@ export default async function ProfilePage({
   params: { username: string };
 }) {
   const username = decodeURIComponent(params.username);
-  const base = getBaseUrl();
 
-  let bio: any | null = null;
-  let notFound = false;
-  let error: string | null = null;
+  // Construimos un origin absoluto para evitar "Failed to parse URL from /api/..."
+  const h = headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  const origin = `${proto}://${host}`;
 
+  const res = await fetch(
+    `${origin}/api/torre/genome/${encodeURIComponent(username)}`,
+    { cache: "no-store", headers: { accept: "application/json" } }
+  );
+
+  let data: any = null;
   try {
-    const res = await fetch(
-      `${base}/api/torre/genome/${encodeURIComponent(username)}`,
-      {
-        headers: { accept: "application/json" },
-        cache: "no-store",
-      }
-    );
-
-    let data: any = null;
-    try {
-      data = await res.json();
-    } catch {
-      data = null;
-    }
-
-    if (!res.ok) {
-      if (res.status === 404 || data?.notFound) {
-        notFound = true;
-      } else {
-        error = data?.error || `Genome fetch failed: ${res.status}`;
-      }
-    } else {
-      bio = data;
-    }
-  } catch (e: any) {
-    error = e?.message || "Error al cargar el perfil";
+    data = await res.json();
+  } catch {
+    data = { ok: false, upstreamStatus: res.status, upstreamBody: "Invalid JSON" };
   }
 
-  if (notFound) {
+  if (!data?.ok) {
     return (
       <div className="section">
         <div className="card">
           <div className="card-pad">
             <div className="row" style={{ justifyContent: "space-between" }}>
               <h2 className="title" style={{ margin: 0 }}>@{username}</h2>
-              <a className="small" href="/search">Volver a buscar</a>
+              <a className="btn" href="/search">Back to search</a>
             </div>
-            <div style={{ height: 12 }} />
-            <div className="small muted">
-              No encontramos el genome de @{username} en Torre. Prueba con otro resultado.
+            <div style={{ height: 8 }} />
+            <div className="small" style={{ color: "#b91c1c" }}>
+              {data?.upstreamStatus === 404
+                ? "Profile not found (404). It may not exist or be private."
+                : `Upstream error: ${data?.upstreamStatus ?? "unknown"}`}
             </div>
           </div>
         </div>
@@ -86,22 +48,7 @@ export default async function ProfilePage({
     );
   }
 
-  if (error) {
-    return (
-      <div className="section">
-        <div className="card">
-          <div className="card-pad">
-            <div className="row" style={{ justifyContent: "space-between" }}>
-              <h2 className="title" style={{ margin: 0 }}>@{username}</h2>
-              <a className="small" href="/search">Volver a buscar</a>
-            </div>
-            <div style={{ height: 12 }} />
-            <div className="small" style={{ color: "#b91c1c" }}>{error}</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const bio = data.bio;
 
   return (
     <div className="section">
@@ -109,24 +56,14 @@ export default async function ProfilePage({
         <div className="card-pad">
           <div className="row" style={{ justifyContent: "space-between" }}>
             <h2 className="title" style={{ margin: 0 }}>@{username}</h2>
-            <a className="small" href="/search">Volver a buscar</a>
+            <a className="btn" href="/search">New search</a>
           </div>
         </div>
       </div>
 
       <div style={{ height: 16 }} />
 
-      {bio ? (
-        <ProfileCard bio={bio} />
-      ) : (
-        <div className="card">
-          <div className="card-pad">
-            <div className="skeleton" style={{ height: 24, width: "66%", marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 16, width: "33%", marginBottom: 24 }} />
-            <div className="skeleton" style={{ height: 160, width: "100%" }} />
-          </div>
-        </div>
-      )}
+      <ProfileCard bio={bio} />
     </div>
   );
 }
